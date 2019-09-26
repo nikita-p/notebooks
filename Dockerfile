@@ -5,38 +5,20 @@ MAINTAINER Omar Zapata <Omar.Zapata@cern.ch>
 USER root
 
 # Install ROOT prerequisites
-RUN apt-get update
+RUN apt update
 ### Core
-RUN apt-get -y install git cmake gcc g++ gfortran doxygen
+RUN apt -y install git cmake gcc g++ gfortran doxygen
 ### X libraries
-RUN apt-get -y install libx11-dev libxext-dev libxft-dev libxpm-dev
+RUN apt -y install libx11-dev libxext-dev libxft-dev libxpm-dev
 ### Python
-RUN apt-get -y install python3-dev python3-numpy-dev python3-pip python3-scipy python3-matplotlib
+RUN apt -y install python3-dev python3-numpy-dev python3-pip python3-scipy python3-matplotlib
 ### Python installed with pip
 #RUN pip3 install metakernel --ignore-installed
 #RUN pip3 install zmq --ignore-installed
 ### Math libraries
-RUN apt-get -y install libgsl0-dev
+RUN apt -y install libgsl0-dev
 ### Other libraries
-RUN apt-get -y install libxml2-dev
-### ROOT-R prerequisites
-RUN apt-get -y install r-base-dev
-
-#RUN R Rscript -e "install.packages('drat', repos='http://cran.rstudio.com')"
-#RUN R Rscript -e "drat:::add('RcppCore')"
-#RUN R Rscript -e "install.packages(c('Rcpp'),repos='http://rcppcore.github.io/drat/')"
-
-
-# Install (R TMVA) packages
-# NOTES:
-# C50:  Decision trees and rule-based models
-# RSNNS: R Stuttgart Neural Network Simulator
-# xgboost: Extreme Gradient Boosting
-# e1071: For Support Vector Machine
-#RUN R Rscript -e "install.packages(c('RInside','C50','RSNNS','xgboost','e1071'),repos='http://cran.cnr.Berkeley.edu')"
-
-# Install (Python TMVA) packages
-#RUN pip3 install scikit-learn
+RUN apt -y install libxml2-dev
 
 # Download and install ROOT master
 WORKDIR /opt
@@ -51,11 +33,6 @@ ENV ROOTSYS         "/opt/root"
 ENV PATH            "$ROOTSYS/bin:$ROOTSYS/bin/bin:$PATH"
 ENV LD_LIBRARY_PATH "$ROOTSYS/lib:$LD_LIBRARY_PATH"
 ENV PYTHONPATH      "$ROOTSYS/lib:$ROOTSYS/lib/JupyROOT:$PYTHONPATH"
-
-# Set ROOT environment for ROOT-R
-#ENV ROOT_INCLUDE_PATH "/usr/share/R/include:/usr/local/lib/R/site-library/Rcpp/include/:/usr/local/lib/R/site-library/RInside/include/"
-#ENV LD_LIBRARY_PATH "/usr/lib/x86_64-linux-gnu/:/usr/lib/R/lib:/usr/local/lib/R/site-library/Rcpp/libs/:/usr/local/lib/R/site-library/RInside/lib/:$LD_LIBRARY_PATH"
-
 
 # Customise the JupyROOT environment
 RUN mkdir -p $HOME/.ipython/kernels $HOME/.ipython/profile_default/static
