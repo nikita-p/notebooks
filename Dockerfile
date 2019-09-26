@@ -13,7 +13,8 @@ RUN apt-get -y install libx11-dev libxext-dev libxft-dev libxpm-dev
 ### Python
 RUN apt-get -y install python3-dev python3-numpy-dev python3-pip python3-scipy python3-matplotlib
 ### Python installed with pip
-RUN pip3 install metakernel zmq --ignore-installed
+RUN pip3 install metakernel --ignore-installed
+RUN pip3 install zmq --ignore-installed
 ### Math libraries
 RUN apt-get -y install libgsl0-dev
 ### Other libraries
