@@ -1,49 +1,42 @@
-FROM jupyter/tensorflow-notebook
+
+FROM andrewosh/binder-base
+
+MAINTAINER Enric Tejedor Saavedra <enric.tejedor.saavedra@cern.ch>
 
 USER root
-# install dependencies 
-RUN apt-get update && apt-get install -yq --no-install-recommends \
-    php-cli php-dev php-pear \
-    pkg-config \
-    && apt-get clean
 
-# install ijavascript
-RUN apt-get install -yq --no-install-recommends nodejs-legacy npm libzmq3-dev && \
-    npm install -g ijavascript && \
-    ijs --ijs-install=global
+# Install ROOT prerequisites
+RUN apt-get update
+RUN apt-get install -y \
+    libx11-6 \
+    libxext6 \
+    libxft2 \
+    libxpm4
+    
+# Install ROOT additional libraries
+RUN apt-get install -y \
+    r-base \
+    r-base-dev
 
-RUN cd .. && \
-    wget https://root.cern.ch/download/cling/cling_2017-09-15_ubuntu16.tar.bz2 && \
-    tar -xvjf cling_2017-09-15_ubuntu16.tar.bz2 && \
-    rm cling_*.tar.bz2 && \
-    mv cling_* cling
+# Download and install ROOT master
+WORKDIR /opt
+RUN wget http://root.cern.ch/notebooks/rootbinderdata/root.tar.gz 
+RUN tar xzf root.tar.gz
+RUN rm root.tar.gz
 
-RUN cd .. && \
-    ln -s $(pwd)/cling/bin/* /usr/bin/ && \
-    cd cling/share/cling/Jupyter/kernel && \
-    pip install -e . && \
-    jupyter-kernelspec install cling-cpp17 && \
-    jupyter-kernelspec install cling-cpp14 && \
-    jupyter-kernelspec install cling-cpp11
+USER main
 
-RUN chown -R $NB_USER /home/$NB_USER && \
-    rm -rf /home/$NB_USER/.local/share/jupyter
+# Set ROOT environment
+ENV ROOTSYS         "/opt/root"
+ENV PATH            "$ROOTSYS/bin:$ROOTSYS/bin/bin:$PATH"
+ENV LD_LIBRARY_PATH "$ROOTSYS/lib:$LD_LIBRARY_PATH"
+ENV PYTHONPATH      "$ROOTSYS/lib:PYTHONPATH"
 
-# install java jre for h2o
-RUN apt-get install -yq openjdk-8-jre
-
-# Reset user from jupyter/base-notebook
-USER $NB_USER
-
-# install jupyter-bash
-RUN /opt/conda/bin/pip install --no-cache-dir bash_kernel
-RUN /opt/conda/bin/python -m bash_kernel.install
-
-# install h2o
-RUN /opt/conda/bin/pip install --no-cache-dir --upgrade h2o && \
-    /opt/conda/bin/pip install --no-cache-dir --upgrade pandas
-
-# disable authentication
-RUN mkdir -p .jupyter
-RUN echo "" >> ~/.jupyter/jupyter_notebook_config.py
-RUN echo "c.NotebookApp.token = ''" >> ~/.jupyter/jupyter_notebook_config.py
+# Customise the ROOTbook
+RUN pip install --upgrade pip
+RUN pip install metakernel --ignore-installed
+RUN pip install zmq --ignore-installed
+RUN mkdir -p                                 $HOME/.ipython/kernels
+RUN cp -r $ROOTSYS/etc/notebook/kernels/root $HOME/.ipython/kernels
+RUN mkdir -p                                 $HOME/.ipython/profile_default/static
+RUN cp -r $ROOTSYS/etc/notebook/custom       $HOME/.ipython/profile_default/static
