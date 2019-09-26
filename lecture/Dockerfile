@@ -18,19 +18,11 @@ RUN apt-get install -y \
     r-base \
     r-base-dev
 
-# Install R packages
-RUN R -e "install.packages(c('Rcpp','RInside'), repos = \"http://cran.case.edu\")"
-
 # Download and install ROOT master
 WORKDIR /opt
 RUN wget http://root.cern.ch/notebooks/rootbinderdata/root.tar.gz 
 RUN tar xzf root.tar.gz
 RUN rm root.tar.gz
-
-# Download and install Fastjet
-RUN wget http://root.cern.ch/notebooks/rootbinderdata/fastjet.tar.gz 
-RUN tar xzf fastjet.tar.gz
-RUN rm fastjet.tar.gz
 
 USER main
 
@@ -40,13 +32,10 @@ ENV PATH            "$ROOTSYS/bin:$ROOTSYS/bin/bin:$PATH"
 ENV LD_LIBRARY_PATH "$ROOTSYS/lib:$LD_LIBRARY_PATH"
 ENV PYTHONPATH      "$ROOTSYS/lib:PYTHONPATH"
 
-# Set ROOT environment for Fastjet
-ENV LD_LIBRARY_PATH "/opt/fastjet/lib:$LD_LIBRARY_PATH"
-ENV ROOT_INCLUDE_PATH "/opt/fastjet/include"
-
 # Customise the ROOTbook
 RUN pip install --upgrade pip
-RUN pip install metakernel
+RUN pip install metakernel --ignore-installed
+RUN pip install zmq --ignore-installed
 RUN mkdir -p                                 $HOME/.ipython/kernels
 RUN cp -r $ROOTSYS/etc/notebook/kernels/root $HOME/.ipython/kernels
 RUN mkdir -p                                 $HOME/.ipython/profile_default/static
