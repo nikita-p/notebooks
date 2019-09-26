@@ -40,10 +40,9 @@ RUN apt-get -y install r-base-dev
 
 # Download and install ROOT master
 WORKDIR /opt
-RUN wget http://files.oproject.org/root_v6.07.07.Linux-unknown-gcc4.9.relwithdebinfo.tar.gz
-RUN tar -xzvf root_v6.07.07.Linux-unknown-gcc4.9.relwithdebinfo.tar.gz
-
-USER main
+RUN wget http://root.cern.ch/notebooks/rootbinderdata/root.tar.gz 
+RUN tar xzf root.tar.gz
+RUN rm root.tar.gz
 
 WORKDIR /home/main
 
