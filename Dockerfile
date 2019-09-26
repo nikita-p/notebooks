@@ -1,40 +1,31 @@
-FROM andrewosh/binder-base
-
-MAINTAINER Omar Zapata <Omar.Zapata@cern.ch>
+FROM atlas/athanalysis:21.2.40
+RUN echo bust cache
+RUN echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/lcg/zeromq/4.1.6-b4186/x86_64-slc6-gcc62-opt/lib' >> /home/atlas/setup.sh 
+RUN source ~/release_setup.sh && pip install -U metakernel --user
+RUN source /home/atlas/release_setup.sh && cp -r $ROOTSYS/etc/notebook/kernels/root ~/.local/share/jupyter/kernels
+RUN echo 'export PATH=$PATH:$HOME/.local/bin' >> /home/atlas/setup.sh
 
 USER root
+ADD entrypoint.sh /entrypoint.sh
+RUN chown atlas /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
-# Install ROOT prerequisites
-RUN apt update
-### Core
-RUN apt -y install git cmake gcc g++ gfortran doxygen
-### X libraries
-RUN apt -y install libx11-dev libxext-dev libxft-dev libxpm-dev
-### Python
-RUN apt -y install python3-dev python3-numpy-dev python3-pip python3-scipy python3-matplotlib
-### Python installed with pip
-#RUN pip3 install metakernel --ignore-installed
-#RUN pip3 install zmq --ignore-installed
-### Math libraries
-RUN apt -y install libgsl0-dev
-### Other libraries
-RUN apt -y install libxml2-dev
+RUN usermod -u 1000 atlas
+RUN find /home -user 500 -type f -exec chown -h atlas '{}' \;
 
-# Download and install ROOT master
-WORKDIR /opt
-RUN wget http://root.cern.ch/notebooks/rootbinderdata/root.tar.gz 
-RUN tar xzf root.tar.gz
-RUN rm root.tar.gz
+ENV AtlasProject AthAnalysis
+ENV AtlasVersion 21.2.40
 
-WORKDIR /home/main
+USER atlas
 
-# Set ROOT environment
-ENV ROOTSYS         "/opt/root"
-ENV PATH            "$ROOTSYS/bin:$ROOTSYS/bin/bin:$PATH"
-ENV LD_LIBRARY_PATH "$ROOTSYS/lib:$LD_LIBRARY_PATH"
-ENV PYTHONPATH      "$ROOTSYS/lib:$ROOTSYS/lib/JupyROOT:$PYTHONPATH"
+ENTRYPOINT ["/entrypoint.sh"]
 
-# Customise the JupyROOT environment
-RUN mkdir -p $HOME/.ipython/kernels $HOME/.ipython/profile_default/static
-RUN cp -r $ROOTSYS/etc/notebook/kernels/root $HOME/.ipython/kernels
-RUN cp -r $ROOTSYS/etc/notebook/custom       $HOME/.ipython/profile_default/static
+COPY . /code/src 
+RUN sudo chown -R atlas /code /home/atlas && \
+    mkdir /code/build && cd /code/build && \
+    source /home/atlas/release_setup.sh && \ 
+    cmake /code/src && \
+    make && \
+    echo 'source /code/build/x86*/setup.sh' >> /home/atlas/setup.sh
+
+WORKDIR /code/src
