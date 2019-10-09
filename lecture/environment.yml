@@ -1,6 +1,0 @@
-dependencies:
-  - ROOT
-  - seaborn
-  - numpy
-  - pandas
-  - cpp-magic
